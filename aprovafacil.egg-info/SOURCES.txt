@@ -1,0 +1,9 @@
+setup.cfg
+setup.py
+aprovafacil/__init__.py
+aprovafacil.egg-info/PKG-INFO
+aprovafacil.egg-info/SOURCES.txt
+aprovafacil.egg-info/dependency_links.txt
+aprovafacil.egg-info/entry_points.txt
+aprovafacil.egg-info/not-zip-safe
+aprovafacil.egg-info/top_level.txt
