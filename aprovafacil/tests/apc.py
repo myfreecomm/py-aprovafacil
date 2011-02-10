@@ -10,12 +10,12 @@ from aprovafacil.wrapper import AprovaFacilWrapper
 class TestAPC(TestCase):
 
     def setUp(self):
-      self.url = 'http://localhost:8000/cgi-bin/CGIAprovaFacil'
+      self.url = 'http://localhost/cgi-bin/CGIAprovaFacil'
 
     def get_post_data(self, **kwargs):
         post_data = {
             'NumeroDocumento': '1',
-            'ValorDocumento': '1.99',
+            'ValorDocumento': '101.75',
             'QuantidadeParcelas': 1,
             'NumeroCartao': '5555666677778884', # Cartao teste mastercard
             'MesValidade': '12',
@@ -54,6 +54,11 @@ class TestAPC(TestCase):
         wrapper.do_apc(**post_data)
 
     ###
+
+    def test_quantidade_parcelas_negativa_gera_falha(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(QuantidadeParcelas=-3)
+        self.assertRaises(ValueError, wrapper.do_apc, **post_data)
 
     def test_autorizacao_sem_numero_documento_falha(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)

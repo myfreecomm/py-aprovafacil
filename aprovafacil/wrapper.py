@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import time
-import json
+from urllib import urlencode
 
 import decimal
 from decimal import Decimal
 
 import httplib2
 from IPy import IP
+
+from utils import xmltodict
 
 class AprovaFacilWrapper(object):
 
@@ -16,14 +18,32 @@ class AprovaFacilWrapper(object):
 
     def validate_apc_input(self, request_data):
         apc_parameters = (
-            'NumeroDocumento', 'ValorDocumento', 'NumeroCartao',
-            'MesValidade', 'AnoValidade', 'CodigoSeguranca',
+            'NumeroDocumento', 'ValorDocumento', 'QuantidadeParcelas',
+            'NumeroCartao', 'MesValidade', 'AnoValidade', 'CodigoSeguranca',
             'EnderecoIPComprador',
         )
+
+        parcels = request_data.get('QuantidadeParcelas', None)
+        if parcels is None:
+            request_data['QuantidadeParcelas'] = 1
+        else:
+            try:
+                parcels = int(parcels)
+            except ValueError:
+                raise ValueError("QuantidadeParcelas must be >= 1")
+
+            if parcels < 1:
+                raise ValueError("QuantidadeParcelas must be >= 1")
 
         for key in apc_parameters:
             if request_data.get(key, None) is None:
                 raise ValueError("Parameter '%s' is required" % key)
+
+        if request_data.get('QuantidadeParcelas', None) is None:
+            request_data['QuantidadeParcelas'] = 1
+
+        if 'QuantidadeParcelas' not in request_data:
+            request_data['QuantidadeParcelas'] = 1
 
     def validate_cc_expiration(self, request_data):
         expiracao_cartao = time.strptime(
@@ -70,8 +90,11 @@ class AprovaFacilWrapper(object):
         http = httplib2.Http()
         response, content = http.request(
             apc_url, 'POST',
-            body=json.dumps(request_data),
+            body=urlencode(request_data),
             headers = {'cache-control': 'no-cache'},
         )
 
-        print content
+        if int(response['status']) == 200:
+            content_dict = xmltodict(content)
+            import pprint
+            pprint.pprint(content_dict)
