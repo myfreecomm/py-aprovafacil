@@ -40,17 +40,72 @@ class TestAPC(TestCase):
     @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.accepted)))
     def test_autorizacao_aprovada(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
-        post_data = self.get_post_data()
+        post_data = self.get_post_data(CodigoSeguranca=555)
         result = wrapper.do_apc(**post_data)
-        import ipdb; ipdb.set_trace()
-        raise NotImplementedError
+        pass
 
     @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.refused)))
     def test_autorizacao_recusada(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
-        post_data = self.get_post_data()
+        post_data = self.get_post_data(CodigoSeguranca=501)
         result = wrapper.do_apc(**post_data)
-        raise NotImplementedError
+        pass
+
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.revoked_credit_card)))
+    def test_autorizacao_recusada_cartao_bloqueado(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CodigoSeguranca=502)
+        result = wrapper.do_apc(**post_data)
+        pass
+
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.invalid_credit_card)))
+    def test_autorizacao_recusada_cartao_invalido(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CodigoSeguranca=504)
+        result = wrapper.do_apc(**post_data)
+        pass
+
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.invalid_amount)))
+    def test_autorizacao_recusada_valor_invalido(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CodigoSeguranca=506)
+        result = wrapper.do_apc(**post_data)
+        pass
+
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.duplicated_transaction)))
+    def test_autorizacao_recusada_transacao_ja_efetuada(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CodigoSeguranca=507)
+        result = wrapper.do_apc(**post_data)
+        pass
+
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.expired_credit_card)))
+    def test_autorizacao_recusada_cartao_vencido(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CodigoSeguranca=508)
+        result = wrapper.do_apc(**post_data)
+        pass
+
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.invalid_data)))
+    def test_autorizacao_recusada_dados_invalidos(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CodigoSeguranca=509)
+        result = wrapper.do_apc(**post_data)
+        pass
+
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.invalid_security_code)))
+    def test_autorizacao_recusada_codigo_seguranca_invalido(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CodigoSeguranca=444)
+        result = wrapper.do_apc(**post_data)
+        pass
+
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.retry_transaction)))
+    def test_autorizacao_recusada_refaca_transacao(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CodigoSeguranca=333)
+        result = wrapper.do_apc(**post_data)
+        pass
 
     @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.accepted)))
     def test_autorizacao_sem_nome_portador_funciona(self):
