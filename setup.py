@@ -18,7 +18,9 @@ setup(name='aprovafacil',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          # -*- Extra requirements: -*-
+        # -*- Extra requirements: -*-
+        'httplib2',
+        'IPy',
       ],
       entry_points="""
       # -*- Entry points: -*-
