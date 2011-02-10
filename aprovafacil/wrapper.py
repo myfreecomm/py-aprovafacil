@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 import time
+import json
+
 import decimal
 from decimal import Decimal
+
+import httplib2
 from IPy import IP
 
 class AprovaFacilWrapper(object):
 
-    def __init__(self, validate_request=True):
+    def __init__(self, cgi_url, validate_request=True):
+        self.cgi_url = cgi_url
         self.validate_request = validate_request
 
     def validate_apc_input(self, request_data):
@@ -52,8 +57,21 @@ class AprovaFacilWrapper(object):
     def do_apc(self, *args, **kwargs):
         request_data = kwargs
 
+        # Validate the request data
         if self.validate_request:
             self.validate_apc_input(request_data)
             self.validate_cc_expiration(request_data)
             self.validate_transaction_value(request_data)
             self.validate_ip_address(request_data)
+
+        # Make the request
+        apc_url = '%s/APC' % self.cgi_url
+
+        http = httplib2.Http()
+        response, content = http.request(
+            apc_url, 'POST',
+            body=json.dumps(request_data),
+            headers = {'cache-control': 'no-cache'},
+        )
+
+        print content
