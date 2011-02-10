@@ -21,6 +21,7 @@ setup(name='aprovafacil',
         # -*- Extra requirements: -*-
         'httplib2',
         'IPy',
+        'Mock',
       ],
       entry_points="""
       # -*- Entry points: -*-

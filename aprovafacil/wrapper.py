@@ -94,7 +94,10 @@ class AprovaFacilWrapper(object):
             headers = {'cache-control': 'no-cache'},
         )
 
-        if int(response['status']) == 200:
-            content_dict = xmltodict(content)
-            import pprint
-            pprint.pprint(content_dict)
+        status = int(response['status'])
+        if status == 200:
+            result = xmltodict(content)
+        else:
+            result = None
+
+        return status, result

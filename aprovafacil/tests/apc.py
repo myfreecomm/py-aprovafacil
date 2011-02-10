@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 import unittest
 from unittest import TestCase
-
-from decimal import Decimal
+from mock import Mock, patch
 import time
+from decimal import Decimal
+from httplib2 import Http
 
 from aprovafacil.wrapper import AprovaFacilWrapper
+import mocked_responses
+
+__all__ = ['TestAPC', ]
+
+fake_response = {
+    'status': '200',
+}
 
 class TestAPC(TestCase):
 
@@ -29,29 +37,55 @@ class TestAPC(TestCase):
         post_data.update(**kwargs)
         return post_data
 
-    def test_sucesso_autorizacao(self):
-        pass
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.accepted)))
+    def test_autorizacao_aprovada(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data()
+        result = wrapper.do_apc(**post_data)
+        import ipdb; ipdb.set_trace()
+        raise NotImplementedError
 
-    def test_autorizacao_sem_endereco_ip_funciona(self):
-        pass
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.refused)))
+    def test_autorizacao_recusada(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data()
+        result = wrapper.do_apc(**post_data)
+        raise NotImplementedError
 
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.accepted)))
     def test_autorizacao_sem_nome_portador_funciona(self):
-        pass
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(NomePortadorCartao=None)
+        result = wrapper.do_apc(**post_data)
+        raise NotImplementedError
 
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.accepted)))
     def test_autorizacao_sem_bandeira_funciona(self):
-        pass
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(Bandeira=None)
+        result = wrapper.do_apc(**post_data)
+        raise NotImplementedError
 
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.accepted)))
     def test_autorizacao_sem_cpf_funciona(self):
-        pass
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(CPFPortadorCartao=None)
+        result = wrapper.do_apc(**post_data)
+        raise NotImplementedError
 
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.accepted)))
     def test_transacao_com_valor_float_funciona(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(ValorDocumento=1.1)
+        result = wrapper.do_apc(**post_data)
+        raise NotImplementedError
 
+    @patch.object(Http, 'request', Mock(return_value=(fake_response, mocked_responses.accepted)))
     def test_quantidade_parcelas_pode_ser_omitida(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(QuantidadeParcelas=None)
-        wrapper.do_apc(**post_data)
+        result = wrapper.do_apc(**post_data)
+        raise NotImplementedError
 
     ###
 
