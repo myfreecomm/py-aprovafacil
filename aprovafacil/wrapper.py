@@ -118,7 +118,7 @@ class APC(AprovaFacilWrapper):
                 if int(parcels) < 1:
                     raise ValueError
             except ValueError:
-                errors["QuantidadeParcelas"] = "QuantidadeParcelas must be >= 1")
+                errors["QuantidadeParcelas"] = "QuantidadeParcelas must be >= 1"
 
         return errors
 
