@@ -118,7 +118,8 @@ class APC(AprovaFacilWrapper):
                 self._errors["QuantidadeParcelas"] = "QuantidadeParcelas must be >= 1"
 
 
-    def validate_ValorDocumento(self, request_data):
+    def validate_ValorDocumento(self):
+        request_data = self.request_data
         try:
             input_value = request_data['ValorDocumento']
             if isinstance(input_value, float):
@@ -143,7 +144,8 @@ class APC(AprovaFacilWrapper):
             self.errors['AnoValidade'] = msg
 
 
-    def validate_EnderecoIPComprador(self, request_data):
+    def validate_EnderecoIPComprador(self):
+        request_data = self.request_data
         try:
             client_ip = IP(request_data['EnderecoIPComprador'])
         except ValueError:
