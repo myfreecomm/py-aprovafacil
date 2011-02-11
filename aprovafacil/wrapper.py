@@ -16,12 +16,12 @@ __all__ = ['AprovaFacilWrapper', ]
 class AprovaFacilWrapper(object):
 
     mandatory_fields = ()
-    _errors = {}
 
 
     def __init__(self, cgi_url, **kwargs):
         self.cgi_url = cgi_url
         self.request_data = kwargs
+        _errors = {}
 
 
     @property
@@ -44,7 +44,7 @@ class AprovaFacilWrapper(object):
     def make_request(self):
         # Validate the request data
         if self.errors:
-            raise ValueError('Errors in request data.')
+            raise ValueError('Errors in request data. (%s)' % ', '.join(self.errors.keys()))
 
         http = httplib2.Http()
         response, content = http.request(
