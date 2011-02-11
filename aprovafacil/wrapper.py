@@ -214,7 +214,7 @@ class CAP(AprovaFacilWrapper):
 
 
     def __init__(self, *args, **kwargs):
-        super(APC, self).__init__(*args, **kwargs)
+        super(CAP, self).__init__(*args, **kwargs)
         self.url = '%s/CAP' % self.cgi_url
 
     def parse_response(self, response, content):
@@ -233,7 +233,7 @@ class CAN(AprovaFacilWrapper):
 
 
     def __init__(self, *args, **kwargs):
-        super(APC, self).__init__(*args, **kwargs)
+        super(CAN, self).__init__(*args, **kwargs)
         self.url = '%s/CAN' % self.cgi_url
 
     def parse_response(self, response, content):
