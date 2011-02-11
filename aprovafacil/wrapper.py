@@ -49,7 +49,7 @@ class AprovaFacilWrapper(object):
         http = httplib2.Http()
         response, content = http.request(
             self.url, 'POST',
-            body=urlencode(seld.request_data),
+            body=urlencode(self.request_data),
             headers = {'cache-control': 'no-cache'},
         )
 
