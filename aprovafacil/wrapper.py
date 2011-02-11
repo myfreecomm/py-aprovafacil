@@ -53,7 +53,7 @@ class AprovaFacilWrapper(object):
             headers = {'cache-control': 'no-cache'},
         )
 
-        self.parse_response(response, content)
+        return self.parse_response(response, content)
 
 
 class APC(AprovaFacilWrapper):
