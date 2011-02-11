@@ -10,7 +10,7 @@ from IPy import IP
 
 from utils import xmltodict
 
-class AprovaFacilWrapper(object):
+class APCWrapper(object):
 
     FAILURE_REASONS = {
         '30': 'Random',
@@ -125,7 +125,7 @@ class AprovaFacilWrapper(object):
         else:
             return None
 
-    def do_apc(self, *args, **kwargs):
+    def do_post(self, *args, **kwargs):
         request_data = kwargs
 
         # Validate the request data
