@@ -178,14 +178,14 @@ class APC(AprovaFacilWrapper):
         status = int(response['status'])
         if status == 200:
             result = xmltodict(content)
-            approved_string = result.get('TransacaoAprovada', None)
-            if approved_string is None:
+            if not result:
                 # XML de formato inesperado
                 result['approved'] = False
                 result['failure_reason'] = 'CGI error. Check licence file'
-            else:
-                result['approved'] = (approved_string == 'True')
-                result['failure_reason'] = self.get_failure_reason(result)
+
+            approved_string = result.get('TransacaoAprovada', None)
+            result['approved'] = (approved_string == 'True')
+            result['failure_reason'] = self.get_failure_reason(result)
 
         else:
             result = {
@@ -221,6 +221,11 @@ class CAP(AprovaFacilWrapper):
         status = int(response['status'])
         if status == 200:
             result = xmltodict(content)
+            if not result:
+                # XML de formato inesperado
+                result['approved'] = False
+                result['failure_reason'] = 'CGI error. Check licence file'
+
         else:
             result = {
                 'approved': False,
@@ -243,6 +248,11 @@ class CAN(AprovaFacilWrapper):
         status = int(response['status'])
         if status == 200:
             result = xmltodict(content)
+            if not result:
+                # XML de formato inesperado
+                result['approved'] = False
+                result['failure_reason'] = 'CGI error. Check licence file'
+
         else:
             result = {
                 'approved': False,
