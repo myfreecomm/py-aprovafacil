@@ -27,22 +27,18 @@ class AprovaFacilWrapper(object):
     @property
     def errors(self):
         if not self._errors:
-            self._errors = self.validate()
-        return self.errors
+            self.validate()
+        return self._errors
 
 
     def validate(self):
-        errors = {}
-
         extra_validation = getattr(self, 'extra_validation', None)
         if extra_validation:
             extra_validation()
 
         for field in self.mandatory_fields:
             if request_data.get(field, None) is None:
-                errors[field] = "Required field '%s'"
-
-        return errors
+                self._errors[field] = "Required field '%s'"
 
 
     def make_request(self):
