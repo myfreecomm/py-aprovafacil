@@ -136,8 +136,8 @@ class APC(AprovaFacilWrapper):
         )
         if not expiracao_cartao > time.localtime():
             msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
-            self.errors['MesValidade'] = msg
-            self.errors['AnoValidade'] = msg
+            self._errors['MesValidade'] = msg
+            self._errors['AnoValidade'] = msg
 
 
     def validate_EnderecoIPComprador(self):
@@ -145,11 +145,11 @@ class APC(AprovaFacilWrapper):
         try:
             client_ip = IP(request_data['EnderecoIPComprador'])
         except ValueError:
-            self.errors['EnderecoIPComprador'] = 'Invalid IP address'
+            self._errors['EnderecoIPComprador'] = 'Invalid IP address'
 
         localnet = IP('127.0.0.0/30')
         if client_ip in localnet:
-            self.errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
+            self._errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
 
 
     def parse_response(self, response, content):
