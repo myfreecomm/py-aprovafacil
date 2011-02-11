@@ -167,4 +167,4 @@ class TestCAPValidation(BaseCanCapTest):
         post_data = self.get_post_data(Transacao=None)
         wrapper = CAP(cgi_url=self.url, **post_data)
         wrapper.validate()
-        self.assertTrue('NumeroDocumento' in wrapper.errors)
+        self.assertTrue('Transacao' in wrapper.errors)
