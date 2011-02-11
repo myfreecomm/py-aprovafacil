@@ -122,7 +122,7 @@ class APC(AprovaFacilWrapper):
                 input_value = str(input_value)
             decimal_value = Decimal(input_value)
 
-        except decimal.InvalidOperation:
+        except (TypeError, decimal.InvalidOperation):
             msg = 'Invalid Document Value (%s)' % request_data['ValorDocumento']
             self._errors['ValorDocumento'] = msg
 
