@@ -210,27 +210,37 @@ class APC(AprovaFacilWrapper):
 
 class CAP(AprovaFacilWrapper):
 
-    def do_cap(self, *args, **kwargs):
-        request_data = kwargs
+    mandatory_fields = ('NumeroDocumento', 'Transacao')
 
-        # Validate the request data
-        self.validate_cap_can(request_data)
 
-        # Make the request
-        apc_url = '%s/CAP' % self.cgi_url
+    def __init__(self, *args, **kwargs):
+        super(APC, self).__init__(*args, **kwargs)
+        self.url = '%s/CAP' % self.cgi_url
 
-        response, content = self._make_request(apc_url, request_data)
+    def parse_response(self, response, content):
+        status = int(response['status'])
+        if status == 200:
+            result = xmltodict(content)
+        else:
+            result = {}
+
+        return result
 
 
 class CAN(AprovaFacilWrapper):
 
-    def do_can(self, *args, **kwargs):
-        request_data = kwargs
+    mandatory_fields = ('NumeroDocumento', 'Transacao')
 
-        # Validate the request data
-        self.validate_cap_can(request_data)
 
-        # Make the request
-        apc_url = '%s/CAN' % self.cgi_url
+    def __init__(self, *args, **kwargs):
+        super(APC, self).__init__(*args, **kwargs)
+        self.url = '%s/CAN' % self.cgi_url
 
-        response, content = self._make_request(apc_url, request_data)
+    def parse_response(self, response, content):
+        status = int(response['status'])
+        if status == 200:
+            result = xmltodict(content)
+        else:
+            result = {}
+
+        return result
