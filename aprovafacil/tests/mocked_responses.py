@@ -643,3 +643,21 @@ invalid_data = """<ResultadoAPC>
     </MeusDados>
 
     </ResultadoAPC>"""
+
+confirmed_capture = """<ResultadoCAP>
+    <ResultadoSolicitacaoAprovacao>
+    Confirmado 73417867510462
+    </ResultadoSolicitacaoAprovacao>
+    <ComprovanteAdministradora>
+
+    </ComprovanteAdministradora>
+    </ResultadoCAP>"""
+
+failed_capture = """<ResultadoCAP>
+    <ResultadoSolicitacaoAprovacao>
+    Erro - Transacao Invalida
+    </ResultadoSolicitacaoAprovacao>
+    <ComprovanteAdministradora>
+
+    </ComprovanteAdministradora>
+    </ResultadoCAP>"""

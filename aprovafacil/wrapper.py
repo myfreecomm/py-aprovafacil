@@ -209,14 +209,14 @@ class APC(AprovaFacilWrapper):
             return None
 
 
-class CAP(AprovaFacilWrapper):
+class CanCapWrapper(AprovaFacilWrapper):
 
     mandatory_fields = ('NumeroDocumento', 'Transacao')
-
+    url_suffix = 'NotSet'
 
     def __init__(self, *args, **kwargs):
-        super(CAP, self).__init__(*args, **kwargs)
-        self.url = '%s/CAP' % self.cgi_url
+        super(CanCapWrapper, self).__init__(*args, **kwargs)
+        self.url = '%s/%s' % (self.cgi_url, self.url_suffix)
 
     def parse_response(self, response, content):
         status = int(response['status'])
@@ -236,28 +236,15 @@ class CAP(AprovaFacilWrapper):
         return result
 
 
-class CAN(AprovaFacilWrapper):
+class CAN(CanCapWrapper):
 
-    mandatory_fields = ('NumeroDocumento', 'Transacao')
-
+    url_suffix = 'CAN'
 
     def __init__(self, *args, **kwargs):
         super(CAN, self).__init__(*args, **kwargs)
-        self.url = '%s/CAN' % self.cgi_url
+        raise NotImplementedError
 
-    def parse_response(self, response, content):
-        status = int(response['status'])
-        if status == 200:
-            result = xmltodict(content)
-            if not result:
-                # XML de formato inesperado
-                result['approved'] = False
-                result['failure_reason'] = 'CGI error. Check licence file'
 
-        else:
-            result = {
-                'approved': False,
-                'failure_reason': 'HTTP Error, status %d' % status,
-            }
+class CAP(CanCapWrapper):
 
-        return result
+    url_suffix = 'CAP'

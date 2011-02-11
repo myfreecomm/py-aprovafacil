@@ -10,8 +10,8 @@ from aprovafacil.wrapper import CAN, CAP
 import mocked_responses
 
 __all__ = [
-    'TestCAN', 'TestCANValidation',
     'TestCAP', 'TestCAPValidation',
+    #'TestCAN', 'TestCANValidation',
 ]
 
 http_200 = {'status': '200'}
@@ -19,6 +19,8 @@ http_500 = {'status': '500'}
 
 http_error = (http_500, '')
 invalid_licence = (http_200, mocked_responses.invalid_licence)
+confirmed_capture = (http_200, mocked_responses.confirmed_capture)
+failed_capture = (http_200, mocked_responses.failed_capture)
 
 ##
 # CAN
@@ -129,25 +131,15 @@ class TestCAP(BaseCanCapTest):
         )
 
 
-    def test_cancelamento_com_sucesso(self):
+    @patch.object(Http, 'request', Mock(return_value=confirmed_capture))
+    def test_captura_com_sucesso(self):
         post_data = self.get_post_data()
         wrapper = CAP(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
 
 
-    def test_cancelamento_marcado_para_processamento(self):
-        post_data = self.get_post_data()
-        wrapper = CAP(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-
-
-    def test_falha_no_cancelamento(self):
-        post_data = self.get_post_data(CodigoSeguranca=501)
-        wrapper = CAP(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-
-
-    def test_erro_na_marcacao_para_cancelamento(self):
+    @patch.object(Http, 'request', Mock(return_value=failed_capture))
+    def test_falha_na_captura(self):
         post_data = self.get_post_data()
         wrapper = CAP(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
