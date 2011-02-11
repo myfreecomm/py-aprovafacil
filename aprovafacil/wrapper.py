@@ -29,7 +29,40 @@ class AprovaFacilWrapper(object):
         self.cgi_url = cgi_url
         self.validate_request = validate_request
 
-    def validate_apc_input(self, request_data):
+    def validate(self, request_data):
+        if 'TransacaoAnterior' in request_data:
+            # Recurring charge
+            self.validate_recurring_charge_input(request_data)
+        else:
+            # First charge
+            self.validate_first_charge_input(request_data)
+            self.validate_cc_expiration(request_data)
+            self.validate_ip_address(request_data)
+
+        self.validate_transaction_value(request_data)
+
+    def validate_recurring_charge_input(self, request_data):
+        apc_parameters = (
+            'TransacaoAnterior', 'ValorDocumento', 'QuantidadeParcelas'
+        )
+
+        parcels = request_data.get('QuantidadeParcelas', None)
+        if parcels is None:
+            request_data['QuantidadeParcelas'] = 1
+        else:
+            try:
+                parcels = int(parcels)
+            except ValueError:
+                raise ValueError("QuantidadeParcelas must be >= 1")
+
+            if parcels < 1:
+                raise ValueError("QuantidadeParcelas must be >= 1")
+
+        for key in apc_parameters:
+            if request_data.get(key, None) is None:
+                raise ValueError("Parameter '%s' is required" % key)
+
+    def validate_first_charge_input(self, request_data):
         apc_parameters = (
             'NumeroDocumento', 'ValorDocumento', 'QuantidadeParcelas',
             'NumeroCartao', 'MesValidade', 'AnoValidade', 'CodigoSeguranca',
@@ -51,12 +84,6 @@ class AprovaFacilWrapper(object):
         for key in apc_parameters:
             if request_data.get(key, None) is None:
                 raise ValueError("Parameter '%s' is required" % key)
-
-        if request_data.get('QuantidadeParcelas', None) is None:
-            request_data['QuantidadeParcelas'] = 1
-
-        if 'QuantidadeParcelas' not in request_data:
-            request_data['QuantidadeParcelas'] = 1
 
     def validate_cc_expiration(self, request_data):
         expiracao_cartao = time.strptime(
@@ -103,10 +130,7 @@ class AprovaFacilWrapper(object):
 
         # Validate the request data
         if self.validate_request:
-            self.validate_apc_input(request_data)
-            self.validate_cc_expiration(request_data)
-            self.validate_transaction_value(request_data)
-            self.validate_ip_address(request_data)
+            self.validate(request_data)
 
         # Make the request
         apc_url = '%s/APC' % self.cgi_url
