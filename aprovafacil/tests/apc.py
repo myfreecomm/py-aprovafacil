@@ -27,7 +27,7 @@ duplicated_transaction = (http_200, mocked_responses.duplicated_transaction)
 invalid_data = (http_200, mocked_responses.invalid_data)
 retry_transaction = (http_200, mocked_responses.retry_transaction)
 
-class BaseAPCTest(TestCase)
+class BaseAPCTest(TestCase):
 
     def setUp(self):
       self.url = 'http://localhost/cgi-bin/CGIAprovaFacil'
