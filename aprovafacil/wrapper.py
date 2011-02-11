@@ -12,6 +12,19 @@ from utils import xmltodict
 
 class AprovaFacilWrapper(object):
 
+    FAILURE_REASONS = {
+        '30': 'Random',
+        '78': 'Blocked credit card',
+        '14': 'Invalid credit card',
+        '54': 'Expired credit card',
+        'N7': 'Invalid security code',
+        '84': 'Please retry',
+        '68': 'Duplicated transaction',
+        '60': 'Invalid amount',
+        '56': 'Invalid data',
+    }
+
+
     def __init__(self, cgi_url, validate_request=True):
         self.cgi_url = cgi_url
         self.validate_request = validate_request
@@ -74,6 +87,17 @@ class AprovaFacilWrapper(object):
         if client_ip in localnet:
             raise ValueError('Localhost addresses are not accepted')
 
+    def get_failure_reason(self, result):
+        if not result['approved']:
+            try:
+                code =  result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip()
+            except IndexError:
+                code = None
+
+            return AprovaFacilWrapper.FAILURE_REASONS.get(code, 'Unknown')
+        else:
+            return None
+
     def do_apc(self, *args, **kwargs):
         request_data = kwargs
 
@@ -97,7 +121,13 @@ class AprovaFacilWrapper(object):
         status = int(response['status'])
         if status == 200:
             result = xmltodict(content)
-        else:
-            result = None
+            result['approved'] = (result['TransacaoAprovada'] == 'True')
+            result['failure_reason'] = self.get_failure_reason(result)
 
-        return status, result
+        else:
+            result = {
+                'approved': False
+                'failure_reason': 'HTTP Error, status %d' % status
+            }
+
+        return approved, result

@@ -167,7 +167,7 @@ accepted = """<ResultadoAPC>
 
     </ResultadoAPC>"""
 
-revoked_credit_card = """<ResultadoAPC>
+blocked_credit_card = """<ResultadoAPC>
     <TransacaoAprovada>
     False
     </TransacaoAprovada>
