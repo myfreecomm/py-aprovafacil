@@ -109,6 +109,9 @@ class APC(AprovaFacilWrapper):
 
 
     def validate_QuantidadeParcelas(self):
+        if 'QuantidadeParcelas' in self._errors:
+            return
+
         request_data = self.request_data
 
         parcels = request_data.get('QuantidadeParcelas', None)
@@ -123,6 +126,9 @@ class APC(AprovaFacilWrapper):
 
 
     def validate_ValorDocumento(self):
+        if 'ValorDocumento' in self._errors:
+            return
+
         request_data = self.request_data
         try:
             input_value = request_data['ValorDocumento']
@@ -136,6 +142,9 @@ class APC(AprovaFacilWrapper):
 
 
     def validate_CreditCardExpiration(self):
+        if 'MesValidade' in self._errors or 'AnoValidade' in self._errors:
+            return
+
         request_data = self.request_data
 
         expiracao_cartao = time.strptime(
@@ -149,6 +158,9 @@ class APC(AprovaFacilWrapper):
 
 
     def validate_EnderecoIPComprador(self):
+        if 'EnderecoIPComprador' in self._errors:
+            return
+
         request_data = self.request_data
         try:
             client_ip = IP(request_data['EnderecoIPComprador'])
