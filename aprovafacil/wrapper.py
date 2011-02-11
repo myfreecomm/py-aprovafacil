@@ -130,14 +130,15 @@ class APC(AprovaFacilWrapper):
     def validate_CreditCardExpiration(self):
         request_data = self.request_data
 
-        expiracao_cartao = time.strptime(
-            "%(AnoValidade)s/%(MesValidade)s" % request_data,
-            "%y/%m"
-        )
-        if not expiracao_cartao > time.localtime():
-            msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
-            self._errors['MesValidade'] = msg
-            self._errors['AnoValidade'] = msg
+        if 'MesValidade' in request_data and 'AnoValidade' in request_data:
+            expiracao_cartao = time.strptime(
+                "%(AnoValidade)s/%(MesValidade)s" % request_data,
+                "%y/%m"
+            )
+            if not expiracao_cartao > time.localtime():
+                msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
+                self._errors['MesValidade'] = msg
+                self._errors['AnoValidade'] = msg
 
 
     def validate_EnderecoIPComprador(self):
