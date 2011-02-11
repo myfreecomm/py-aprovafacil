@@ -166,10 +166,12 @@ class APC(AprovaFacilWrapper):
             client_ip = IP(request_data['EnderecoIPComprador'])
         except ValueError:
             self._errors['EnderecoIPComprador'] = 'Invalid IP address'
+            return
 
         localnet = IP('127.0.0.0/30')
         if client_ip in localnet:
             self._errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
+            return
 
 
     def parse_response(self, response, content):
