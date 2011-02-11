@@ -21,7 +21,7 @@ class AprovaFacilWrapper(object):
     def __init__(self, cgi_url, **kwargs):
         self.cgi_url = cgi_url
         self.request_data = kwargs
-        _errors = {}
+        self._errors = {}
 
 
     @property
