@@ -222,7 +222,10 @@ class CAP(AprovaFacilWrapper):
         if status == 200:
             result = xmltodict(content)
         else:
-            result = {}
+            result = {
+                'approved': False,
+                'failure_reason': 'HTTP Error, status %d' % status,
+            }
 
         return result
 
@@ -241,6 +244,9 @@ class CAN(AprovaFacilWrapper):
         if status == 200:
             result = xmltodict(content)
         else:
-            result = {}
+            result = {
+                'approved': False,
+                'failure_reason': 'HTTP Error, status %d' % status,
+            }
 
         return result
