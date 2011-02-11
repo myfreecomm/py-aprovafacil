@@ -53,24 +53,27 @@ class TestAPC(TestCase):
     def test_erro_http(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data()
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'],  'HTTP Error, status 500')
 
     @patch.object(Http, 'request', Mock(return_value=invalid_licence))
     def test_arquivo_licenca_invalido(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=555)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
-        self.assertEquals(result['failure_reason'],  'Invalid licence file')
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
+        self.assertEquals(
+            result['failure_reason'],
+            'CGI error. Check licence file'
+        )
 
     @patch.object(Http, 'request', Mock(return_value=accepted))
     def test_autorizacao_aprovada(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=555)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertTrue(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertTrue(result['approved'])
         self.assertEquals(result['failure_reason'], None)
         self.assertEquals(
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
@@ -90,8 +93,8 @@ class TestAPC(TestCase):
     def test_autorizacao_recusada(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=501)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['30'])
         self.assertEquals(
             post_data['NumeroCartao'][:6],
@@ -107,72 +110,72 @@ class TestAPC(TestCase):
     def test_autorizacao_recusada_cartao_bloqueado(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=502)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['78'])
 
     @patch.object(Http, 'request', Mock(return_value=invalid_credit_card))
     def test_autorizacao_recusada_cartao_invalido(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=504)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['14'])
 
     @patch.object(Http, 'request', Mock(return_value=invalid_amount))
     def test_autorizacao_recusada_valor_invalido(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=506)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['60'])
 
     @patch.object(Http, 'request', Mock(return_value=duplicated_transaction))
     def test_autorizacao_recusada_transacao_ja_efetuada(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=507)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['68'])
 
     @patch.object(Http, 'request', Mock(return_value=expired_credit_card))
     def test_autorizacao_recusada_cartao_vencido(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=508)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['54'])
 
     @patch.object(Http, 'request', Mock(return_value=invalid_data))
     def test_autorizacao_recusada_dados_invalidos(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=509)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['56'])
 
     @patch.object(Http, 'request', Mock(return_value=invalid_security_code))
     def test_autorizacao_recusada_codigo_seguranca_invalido(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=444)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['N7'])
 
     @patch.object(Http, 'request', Mock(return_value=retry_transaction))
     def test_autorizacao_recusada_refaca_transacao(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CodigoSeguranca=333)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertFalse(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertFalse(result['approved'])
         self.assertEquals(result['failure_reason'], AprovaFacilWrapper.FAILURE_REASONS['84'])
 
     @patch.object(Http, 'request', Mock(return_value=accepted))
     def test_autorizacao_sem_nome_portador_funciona(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(NomePortadorCartao=None)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertTrue(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertTrue(result['approved'])
         self.assertEquals(result['failure_reason'], None)
         self.assertEquals(
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
@@ -192,8 +195,8 @@ class TestAPC(TestCase):
     def test_autorizacao_sem_bandeira_funciona(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(Bandeira=None)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertTrue(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertTrue(result['approved'])
         self.assertEquals(result['failure_reason'], None)
         self.assertEquals(
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
@@ -213,8 +216,8 @@ class TestAPC(TestCase):
     def test_autorizacao_sem_cpf_funciona(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(CPFPortadorCartao=None)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertTrue(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertTrue(result['approved'])
         self.assertEquals(result['failure_reason'], None)
         self.assertEquals(
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
@@ -234,8 +237,8 @@ class TestAPC(TestCase):
     def test_transacao_com_valor_float_funciona(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(ValorDocumento=1.1)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertTrue(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertTrue(result['approved'])
         self.assertEquals(result['failure_reason'], None)
         self.assertEquals(
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
@@ -255,8 +258,8 @@ class TestAPC(TestCase):
     def test_quantidade_parcelas_pode_ser_omitida(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(QuantidadeParcelas=None)
-        approved, result = wrapper.do_apc(**post_data)
-        self.assertTrue(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertTrue(result['approved'])
         self.assertEquals(result['failure_reason'], None)
         self.assertEquals(
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
@@ -277,7 +280,8 @@ class TestAPC(TestCase):
     def test_extra_data_in_post_is_ignored(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
         post_data = self.get_post_data(NaoFazDiferenca='sim', QuebraPost=False)
-        self.assertTrue(approved)
+        result = wrapper.do_apc(**post_data)
+        self.assertTrue(result['approved'])
         self.assertEquals(result['failure_reason'], None)
         self.assertEquals(
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
@@ -292,10 +296,6 @@ class TestAPC(TestCase):
             result['CartaoMascarado'][-4:]
         )
         self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
-
-       approved, result = wrapper.do_apc(**post_data)
-
-    ###
 
     def test_quantidade_parcelas_negativa_gera_falha(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)

@@ -121,13 +121,19 @@ class AprovaFacilWrapper(object):
         status = int(response['status'])
         if status == 200:
             result = xmltodict(content)
-            result['approved'] = (result['TransacaoAprovada'] == 'True')
-            result['failure_reason'] = self.get_failure_reason(result)
+            approved_string = result.get('TransacaoAprovada', None)
+            if approved_string is None:
+                # XML de formato inesperado
+                result['approved'] = False
+                result['failure_reason'] = 'CGI error. Check licence file'
+            else:
+                result['approved'] = (approved_string == 'True')
+                result['failure_reason'] = self.get_failure_reason(result)
 
         else:
             result = {
-                'approved': False
-                'failure_reason': 'HTTP Error, status %d' % status
+                'approved': False,
+                'failure_reason': 'HTTP Error, status %d' % status,
             }
 
-        return approved, result
+        return result
