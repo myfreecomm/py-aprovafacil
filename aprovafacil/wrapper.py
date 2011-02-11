@@ -37,7 +37,7 @@ class AprovaFacilWrapper(object):
             extra_validation()
 
         for field in self.mandatory_fields:
-            if request_data.get(field, None) is None:
+            if self.request_data.get(field, None) is None:
                 self._errors[field] = "Required field '%s'"
 
 
