@@ -10,7 +10,22 @@ from IPy import IP
 
 from utils import xmltodict
 
+__all__ = ['AprovaFacilWrapper', ]
+
+
 class AprovaFacilWrapper(object):
+
+    def _make_request(self, url, data):
+
+        http = httplib2.Http()
+        return = http.request(
+            url, 'POST',
+            body=urlencode(data),
+            headers = {'cache-control': 'no-cache'},
+        )
+
+
+class APC(AprovaFacilWrapper):
 
     FAILURE_REASONS = {
         '30': 'Random',
@@ -29,6 +44,7 @@ class AprovaFacilWrapper(object):
         self.cgi_url = cgi_url
         self.validate_request = validate_request
 
+
     def validate(self, request_data):
         if 'TransacaoAnterior' in request_data:
             # Recurring charge
@@ -40,6 +56,7 @@ class AprovaFacilWrapper(object):
             self.validate_ip_address(request_data)
 
         self.validate_transaction_value(request_data)
+
 
     def validate_recurring_charge_input(self, request_data):
         apc_parameters = (
@@ -61,6 +78,7 @@ class AprovaFacilWrapper(object):
         for key in apc_parameters:
             if request_data.get(key, None) is None:
                 raise ValueError("Parameter '%s' is required" % key)
+
 
     def validate_first_charge_input(self, request_data):
         apc_parameters = (
@@ -85,6 +103,7 @@ class AprovaFacilWrapper(object):
             if request_data.get(key, None) is None:
                 raise ValueError("Parameter '%s' is required" % key)
 
+
     def validate_cc_expiration(self, request_data):
         expiracao_cartao = time.strptime(
             "%(AnoValidade)s/%(MesValidade)s" % request_data,
@@ -93,6 +112,7 @@ class AprovaFacilWrapper(object):
         if not expiracao_cartao > time.localtime():
             msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s"
             raise ValueError(msg % request_data)
+
 
     def validate_transaction_value(self, request_data):
         try:
@@ -104,6 +124,7 @@ class AprovaFacilWrapper(object):
             msg = 'Invalid Document Value (%s)'
             raise ValueError(msg % request_data['ValorDocumento'])
 
+
     def validate_ip_address(self, request_data):
         try:
             client_ip = IP(request_data['EnderecoIPComprador'])
@@ -114,6 +135,7 @@ class AprovaFacilWrapper(object):
         if client_ip in localnet:
             raise ValueError('Localhost addresses are not accepted')
 
+
     def get_failure_reason(self, result):
         if not result['approved']:
             try:
@@ -121,26 +143,22 @@ class AprovaFacilWrapper(object):
             except IndexError:
                 code = None
 
-            return AprovaFacilWrapper.FAILURE_REASONS.get(code, 'Unknown')
+            return APC.FAILURE_REASONS.get(code, 'Unknown')
         else:
             return None
+
 
     def do_apc(self, *args, **kwargs):
         request_data = kwargs
 
         # Validate the request data
         if self.validate_request:
-            self.validate(request_data)
+            self.validate_apc(request_data)
 
         # Make the request
         apc_url = '%s/APC' % self.cgi_url
 
-        http = httplib2.Http()
-        response, content = http.request(
-            apc_url, 'POST',
-            body=urlencode(request_data),
-            headers = {'cache-control': 'no-cache'},
-        )
+        response, content = self._make_request(apc_url, request_data)
 
         status = int(response['status'])
         if status == 200:
@@ -161,3 +179,33 @@ class AprovaFacilWrapper(object):
             }
 
         return result
+
+
+class CAP(AprovaFacilWrapper):
+
+    def do_cap(self, *args, **kwargs):
+        request_data = kwargs
+
+        # Validate the request data
+        if self.validate_request:
+            self.validate_cap_can(request_data)
+
+        # Make the request
+        apc_url = '%s/CAP' % self.cgi_url
+
+        response, content = self._make_request(apc_url, request_data)
+
+
+class CAN(AprovaFacilWrapper):
+
+    def do_can(self, *args, **kwargs):
+        request_data = kwargs
+
+        # Validate the request data
+        if self.validate_request:
+            self.validate_cap_can(request_data)
+
+        # Make the request
+        apc_url = '%s/CAN' % self.cgi_url
+
+        response, content = self._make_request(apc_url, request_data)
