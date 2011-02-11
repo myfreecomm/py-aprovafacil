@@ -11,7 +11,7 @@ import mocked_responses
 
 __all__ = [
     'TestFirstCharge', 'TestFirstChargeValidation',
-    'TestRecurringCharge', 'TestFirstRecurringValidation',
+    'TestRecurringCharge', 'TestRecurringChargeValidation',
 ]
 
 http_200 = {'status': '200'}
@@ -708,7 +708,7 @@ class TestRecurringCharge(BaseFirstChargeTest):
         self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
 
 
-class TestFirstChargeValidation(BaseFirstChargeTest):
+class TestRecurringChargeValidation(BaseFirstChargeTest):
 
     def test_quantidade_parcelas_negativa_gera_falha(self):
         wrapper = AprovaFacilWrapper(cgi_url=self.url)
