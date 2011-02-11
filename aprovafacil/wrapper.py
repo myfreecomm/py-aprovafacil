@@ -15,14 +15,49 @@ __all__ = ['AprovaFacilWrapper', ]
 
 class AprovaFacilWrapper(object):
 
-    def _make_request(self, url, data):
+    mandatory_fields = ()
+    _errors = {}
+
+
+    def __init__(self, cgi_url, **kwargs):
+        self.cgi_url = cgi_url
+        self.request_data = kwargs
+
+
+    @property
+    def errors(self):
+        if not self._errors:
+            self._errors = self.validate()
+        return self.errors
+
+
+    def validate(self):
+        errors = {}
+
+        extra_validation = getattr(self, 'extra_validation', None)
+        if extra_validation:
+            extra_validation()
+
+        for field in self.mandatory_fields:
+            if request_data.get(field, None) is None:
+                errors[field] = "Required field '%s'"
+
+        return errors
+
+
+    def make_request(self):
+        # Validate the request data
+        if self.errors:
+            raise ValueError('Errors in request data.')
 
         http = httplib2.Http()
-        return = http.request(
-            url, 'POST',
-            body=urlencode(data),
+        response, content = http.request(
+            self.url, 'POST',
+            body=urlencode(seld.request_data),
             headers = {'cache-control': 'no-cache'},
         )
+
+        self.parse_response(response, content)
 
 
 class APC(AprovaFacilWrapper):
@@ -39,127 +74,87 @@ class APC(AprovaFacilWrapper):
         '56': 'Invalid data',
     }
 
+    mandatory_fields = (
+        'NumeroDocumento', 'ValorDocumento', 'QuantidadeParcelas',
+        'NumeroCartao', 'MesValidade', 'AnoValidade', 'CodigoSeguranca',
+        'EnderecoIPComprador',
+    )
 
-    def __init__(self, cgi_url, validate_request=True):
-        self.cgi_url = cgi_url
-        self.validate_request = validate_request
+    recurring_charge_fields = (
+        'TransacaoAnterior', 'ValorDocumento', 'QuantidadeParcelas'
+    )
 
 
-    def validate(self, request_data):
+    def __init__(self, *args, **kwargs):
+        super(APC, self).__init__(*args, **kwargs)
+        self.url = '%s/APC' % self.cgi_url
+
+
+    def extra_validation(self):
+        request_data = self.request_data
         if 'TransacaoAnterior' in request_data:
-            # Recurring charge
-            self.validate_recurring_charge_input(request_data)
+            # Recurring charge mandatory fields are different
+            self.mandatory_fields = self.recurring_charge_fields
         else:
             # First charge
-            self.validate_first_charge_input(request_data)
-            self.validate_cc_expiration(request_data)
-            self.validate_ip_address(request_data)
+            self.validate_CreditCardExpiration()
+            self.validate_EnderecoIPComprador()
 
-        self.validate_transaction_value(request_data)
+        self.validate_QuantidadeParcelas()
+        self.validate_ValorDocumento()
 
 
-    def validate_recurring_charge_input(self, request_data):
-        apc_parameters = (
-            'TransacaoAnterior', 'ValorDocumento', 'QuantidadeParcelas'
-        )
+    def validate_QuantidadeParcelas(self):
+        request_data = self.request_data
 
         parcels = request_data.get('QuantidadeParcelas', None)
         if parcels is None:
             request_data['QuantidadeParcelas'] = 1
         else:
             try:
-                parcels = int(parcels)
+                if int(parcels) < 1:
+                    raise ValueError
             except ValueError:
-                raise ValueError("QuantidadeParcelas must be >= 1")
-
-            if parcels < 1:
-                raise ValueError("QuantidadeParcelas must be >= 1")
-
-        for key in apc_parameters:
-            if request_data.get(key, None) is None:
-                raise ValueError("Parameter '%s' is required" % key)
+                self._errors["QuantidadeParcelas"] = "QuantidadeParcelas must be >= 1"
 
 
-    def validate_first_charge_input(self, request_data):
-        apc_parameters = (
-            'NumeroDocumento', 'ValorDocumento', 'QuantidadeParcelas',
-            'NumeroCartao', 'MesValidade', 'AnoValidade', 'CodigoSeguranca',
-            'EnderecoIPComprador',
-        )
-
-        parcels = request_data.get('QuantidadeParcelas', None)
-        if parcels is None:
-            request_data['QuantidadeParcelas'] = 1
-        else:
-            try:
-                parcels = int(parcels)
-            except ValueError:
-                raise ValueError("QuantidadeParcelas must be >= 1")
-
-            if parcels < 1:
-                raise ValueError("QuantidadeParcelas must be >= 1")
-
-        for key in apc_parameters:
-            if request_data.get(key, None) is None:
-                raise ValueError("Parameter '%s' is required" % key)
-
-
-    def validate_cc_expiration(self, request_data):
-        expiracao_cartao = time.strptime(
-            "%(AnoValidade)s/%(MesValidade)s" % request_data,
-            "%y/%m"
-        )
-        if not expiracao_cartao > time.localtime():
-            msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s"
-            raise ValueError(msg % request_data)
-
-
-    def validate_transaction_value(self, request_data):
+    def validate_ValorDocumento(self, request_data):
         try:
             input_value = request_data['ValorDocumento']
             if isinstance(input_value, float):
                 input_value = str(input_value)
             decimal_value = Decimal(input_value)
+
         except decimal.InvalidOperation:
-            msg = 'Invalid Document Value (%s)'
-            raise ValueError(msg % request_data['ValorDocumento'])
+            msg = 'Invalid Document Value (%s)' % request_data['ValorDocumento']
+            self._errors['ValorDocumento'] = msg
 
 
-    def validate_ip_address(self, request_data):
+    def validate_CreditCardExpiration(self):
+        request_data = self.request_data
+
+        expiracao_cartao = time.strptime(
+            "%(AnoValidade)s/%(MesValidade)s" % request_data,
+            "%y/%m"
+        )
+        if not expiracao_cartao > time.localtime():
+            msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
+            self.errors['MesValidade'] = msg
+            self.errors['AnoValidade'] = msg
+
+
+    def validate_EnderecoIPComprador(self, request_data):
         try:
             client_ip = IP(request_data['EnderecoIPComprador'])
         except ValueError:
-            raise ValueError('Invalid IP address')
+            self.errors['EnderecoIPComprador'] = 'Invalid IP address'
 
         localnet = IP('127.0.0.0/30')
         if client_ip in localnet:
-            raise ValueError('Localhost addresses are not accepted')
+            self.errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
 
 
-    def get_failure_reason(self, result):
-        if not result['approved']:
-            try:
-                code =  result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip()
-            except IndexError:
-                code = None
-
-            return APC.FAILURE_REASONS.get(code, 'Unknown')
-        else:
-            return None
-
-
-    def do_apc(self, *args, **kwargs):
-        request_data = kwargs
-
-        # Validate the request data
-        if self.validate_request:
-            self.validate_apc(request_data)
-
-        # Make the request
-        apc_url = '%s/APC' % self.cgi_url
-
-        response, content = self._make_request(apc_url, request_data)
-
+    def parse_response(self, response, content):
         status = int(response['status'])
         if status == 200:
             result = xmltodict(content)
@@ -181,14 +176,25 @@ class APC(AprovaFacilWrapper):
         return result
 
 
+    def get_failure_reason(self, result):
+        if not result['approved']:
+            try:
+                code =  result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip()
+            except IndexError:
+                code = None
+
+            return APC.FAILURE_REASONS.get(code, 'Unknown')
+        else:
+            return None
+
+
 class CAP(AprovaFacilWrapper):
 
     def do_cap(self, *args, **kwargs):
         request_data = kwargs
 
         # Validate the request data
-        if self.validate_request:
-            self.validate_cap_can(request_data)
+        self.validate_cap_can(request_data)
 
         # Make the request
         apc_url = '%s/CAP' % self.cgi_url
@@ -202,8 +208,7 @@ class CAN(AprovaFacilWrapper):
         request_data = kwargs
 
         # Validate the request data
-        if self.validate_request:
-            self.validate_cap_can(request_data)
+        self.validate_cap_can(request_data)
 
         # Make the request
         apc_url = '%s/CAN' % self.cgi_url
