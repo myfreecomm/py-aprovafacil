@@ -32,13 +32,18 @@ class AprovaFacilWrapper(object):
 
 
     def validate(self):
+        pre_validate = getattr(self, 'pre_validate', None)
+        pos_validate = getattr(self, 'pos_validate', None)
+
+        if pre_validate:
+            pre_validate()
+
         for field in self.mandatory_fields:
             if self.request_data.get(field, None) is None:
                 self._errors[field] = "Required field '%s'"
 
-        extra_validation = getattr(self, 'extra_validation', None)
-        if extra_validation:
-            extra_validation()
+        if pos_validate:
+            pos_validate()
 
 
     def make_request(self):
@@ -86,7 +91,11 @@ class APC(AprovaFacilWrapper):
         self.url = '%s/APC' % self.cgi_url
 
 
-    def extra_validation(self):
+    def pre_validate(self):
+        self.validate_QuantidadeParcelas()
+
+
+    def pos_validate(self):
         request_data = self.request_data
         if 'TransacaoAnterior' in request_data:
             # Recurring charge mandatory fields are different
@@ -96,7 +105,6 @@ class APC(AprovaFacilWrapper):
             self.validate_CreditCardExpiration()
             self.validate_EnderecoIPComprador()
 
-        self.validate_QuantidadeParcelas()
         self.validate_ValorDocumento()
 
 
