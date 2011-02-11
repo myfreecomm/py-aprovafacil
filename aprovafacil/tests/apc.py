@@ -332,73 +332,86 @@ class TestFirstChargeValidation(BaseFirstChargeTest):
     def test_quantidade_parcelas_negativa_gera_falha(self):
         post_data = self.get_post_data(QuantidadeParcelas=-3)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('QuantidadeParcelas' in wrapper.errors)
 
 
     def test_autorizacao_sem_numero_documento_falha(self):
         post_data = self.get_post_data(NumeroDocumento=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('NumeroDocumento' in wrapper.errors)
 
 
     def test_autorizacao_sem_valor_falha(self):
         post_data = self.get_post_data(ValorDocumento=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('ValorDocumento' in wrapper.errors)
 
 
     def test_transacao_com_valor_de_tipo_invalido_falha(self):
         post_data = self.get_post_data(ValorDocumento='NoNumber')
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('ValorDocumento' in wrapper.errors)
 
 
     def test_transacao_sem_numero_cartao_falha(self):
         post_data = self.get_post_data(NumeroCartao=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('NumeroCartao' in wrapper.errors)
 
 
     def test_transacao_sem_mes_validade_cartao_falha(self):
         post_data = self.get_post_data(MesValidade=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('MesValidade' in wrapper.errors)
 
 
     def test_transacao_sem_ano_validade_cartao_falha(self):
         post_data = self.get_post_data(AnoValidade=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('AnoValidade' in wrapper.errors)
 
 
     def test_transacao_sem_codigo_cartao_falha(self):
         post_data = self.get_post_data(CodigoSeguranca=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('CodigoSeguranca' in wrapper.errors)
 
 
     def test_transacao_sem_ip_comprador_falha(self):
         post_data = self.get_post_data(EnderecoIPComprador=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('EnderecoIPComprador' in wrapper.errors)
 
 
     def test_endereco_ip_comprador_malformado_gera_falha(self):
         post_data = self.get_post_data(EnderecoIPComprador='NoIP')
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('EnderecoIPComprador' in wrapper.errors)
 
 
     def test_endereco_ip_nao_pode_ser_localhost(self):
         post_data = self.get_post_data(EnderecoIPComprador='127.0.0.2')
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('EnderecoIPComprador' in wrapper.errors)
 
 
     def test_transacao_com_cartao_expirado_falha(self):
         post_data = self.get_post_data(AnoValidade='88')
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('AnoValidade' in wrapper.errors)
+        self.assertTrue('MesValidade' in wrapper.errors)
 
 
 ##
@@ -713,22 +726,26 @@ class TestRecurringChargeValidation(BaseFirstChargeTest):
     def test_quantidade_parcelas_negativa_gera_falha(self):
         post_data = self.get_post_data(QuantidadeParcelas=-3)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('QuantidadeParcelas' in wrapper.errors)
 
 
     def test_autorizacao_sem_valor_falha(self):
         post_data = self.get_post_data(ValorDocumento=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('ValorDocumento' in wrapper.errors)
 
 
     def test_transacao_com_valor_de_tipo_invalido_falha(self):
         post_data = self.get_post_data(ValorDocumento='NoNumber')
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('ValorDocumento' in wrapper.errors)
 
 
     def test_transacao_sem_transacao_anterior_gera_falha(self):
         post_data = self.get_post_data(TransacaoAnterior=None)
         wrapper = APC(cgi_url=self.url, **post_data)
-        self.assertRaises(ValueError, wrapper.make_request)
+        wrapper.validate()
+        self.assertTrue('TransacaoAnterior' in wrapper.errors)
