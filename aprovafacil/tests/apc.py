@@ -142,6 +142,13 @@ class TestAPC(TestCase):
         result = wrapper.do_apc(**post_data)
         raise NotImplementedError
 
+
+    def test_extra_data_in_post_is_ignored(self):
+        wrapper = AprovaFacilWrapper(cgi_url=self.url)
+        post_data = self.get_post_data(NaoFazDiferenca='sim', QuebraPost=False)
+        result = wrapper.do_apc(**post_data)
+        raise NotImplementedError
+
     ###
 
     def test_quantidade_parcelas_negativa_gera_falha(self):
