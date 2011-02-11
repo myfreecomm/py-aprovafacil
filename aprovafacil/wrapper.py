@@ -36,7 +36,7 @@ class AprovaFacilWrapper(object):
 
         extra_validation = getattr(self, 'extra_validation', None)
         if extra_validation:
-            errors.update(extra_validation())
+            extra_validation()
 
         for field in self.mandatory_fields:
             if request_data.get(field, None) is None:
@@ -97,18 +97,15 @@ class APC(AprovaFacilWrapper):
             self.mandatory_fields = self.recurring_charge_fields
         else:
             # First charge
-            self.errors.update(self.validate_CreditCardExpiration())
-            self.errors.update(self.validate_EnderecoIPComprador())
+            self.validate_CreditCardExpiration()
+            self.validate_EnderecoIPComprador()
 
-        self.errors.update(self.validate_QuantidadeParcelas())
-        self.errors.update(self.validate_ValorDocumento())
-
-        return self.errors
+        self.validate_QuantidadeParcelas()
+        self.validate_ValorDocumento()
 
 
     def validate_QuantidadeParcelas(self):
         request_data = self.request_data
-        errors = {}
 
         parcels = request_data.get('QuantidadeParcelas', None)
         if parcels is None:
@@ -118,9 +115,7 @@ class APC(AprovaFacilWrapper):
                 if int(parcels) < 1:
                     raise ValueError
             except ValueError:
-                errors["QuantidadeParcelas"] = "QuantidadeParcelas must be >= 1"
-
-        return errors
+                self._errors["QuantidadeParcelas"] = "QuantidadeParcelas must be >= 1"
 
 
     def validate_ValorDocumento(self, request_data):
@@ -129,11 +124,10 @@ class APC(AprovaFacilWrapper):
             if isinstance(input_value, float):
                 input_value = str(input_value)
             decimal_value = Decimal(input_value)
-            return {}
 
         except decimal.InvalidOperation:
             msg = 'Invalid Document Value (%s)' % request_data['ValorDocumento']
-            return {'ValorDocumento': msg}
+            self._errors['ValorDocumento'] = msg
 
 
     def validate_CreditCardExpiration(self):
@@ -145,24 +139,19 @@ class APC(AprovaFacilWrapper):
         )
         if not expiracao_cartao > time.localtime():
             msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
-            return {'MesValidade': msg, 'AnoValidade': msg}
-        else:
-            return {}
+            self.errors['MesValidade'] = msg
+            self.errors['AnoValidade'] = msg
 
 
     def validate_EnderecoIPComprador(self, request_data):
-        errors = {}
-
         try:
             client_ip = IP(request_data['EnderecoIPComprador'])
         except ValueError:
-            errors['EnderecoIPComprador'] = 'Invalid IP address'
+            self.errors['EnderecoIPComprador'] = 'Invalid IP address'
 
         localnet = IP('127.0.0.0/30')
         if client_ip in localnet:
-            errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
-
-        return errors
+            self.errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
 
 
     def parse_response(self, response, content):
