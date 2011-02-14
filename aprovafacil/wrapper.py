@@ -211,7 +211,8 @@ class APC(AprovaFacilWrapper):
 
 class CanCapWrapper(AprovaFacilWrapper):
 
-    mandatory_fields = ('NumeroDocumento', 'Transacao')
+    # 'NumeroDocumento' is an optional field
+    mandatory_fields = ('Transacao', )
     url_suffix = 'NotSet'
 
     def __init__(self, *args, **kwargs):

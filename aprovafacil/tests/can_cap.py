@@ -91,11 +91,11 @@ class TestCAN(BaseCanCapTest):
 class TestCANValidation(BaseCanCapTest):
 
 
-    def test_numero_documento_eh_obrigatorio(self):
+    def test_numero_documento_eh_opcional(self):
         post_data = self.get_post_data(NumeroDocumento=None)
         wrapper = CAN(cgi_url=self.url, **post_data)
         wrapper.validate()
-        self.assertTrue('NumeroDocumento' in wrapper.errors)
+        self.assertFalse('NumeroDocumento' in wrapper.errors)
 
 
     def test_transacao_anterior_eh_obrigatoria(self):
@@ -148,11 +148,11 @@ class TestCAP(BaseCanCapTest):
 class TestCAPValidation(BaseCanCapTest):
 
 
-    def test_numero_documento_eh_obrigatorio(self):
+    def test_numero_documento_eh_opcional(self):
         post_data = self.get_post_data(NumeroDocumento=None)
         wrapper = CAP(cgi_url=self.url, **post_data)
         wrapper.validate()
-        self.assertTrue('NumeroDocumento' in wrapper.errors)
+        self.assertFalse('NumeroDocumento' in wrapper.errors)
 
 
     def test_transacao_anterior_eh_obrigatoria(self):
