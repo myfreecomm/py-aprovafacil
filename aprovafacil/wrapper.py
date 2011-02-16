@@ -146,12 +146,19 @@ class APC(AprovaFacilWrapper):
 
         request_data = self.request_data
 
-        expiracao_cartao = time.strptime(
-            "%(AnoValidade)s/%(MesValidade)s" % request_data,
-            "%y/%m"
-        )
-        if not expiracao_cartao > time.localtime():
-            msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
+        try:
+            expiracao_cartao = time.strptime(
+                "%(AnoValidade)s/%(MesValidade)s" % request_data,
+                "%y/%m"
+            )
+
+            if not expiracao_cartao > time.localtime():
+                msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
+                self._errors['MesValidade'] = msg
+                self._errors['AnoValidade'] = msg
+
+        except ValueError:
+            msg = 'Both AnoValidade and MesValidade should be composed of 1 or 2 digits'
             self._errors['MesValidade'] = msg
             self._errors['AnoValidade'] = msg
 
@@ -160,17 +167,19 @@ class APC(AprovaFacilWrapper):
         if 'EnderecoIPComprador' in self._errors:
             return
 
-        request_data = self.request_data
-        try:
-            client_ip = IP(request_data['EnderecoIPComprador'])
-        except ValueError:
-            self._errors['EnderecoIPComprador'] = 'Invalid IP address'
-            return
+        EnderecoIPComprador = self.request_data.get('EnderecoIPComprador', None)
 
-        localnet = IP('127.0.0.0/30')
-        if client_ip in localnet:
-            self._errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
-            return
+        if EnderecoIPComprador is not None:
+            try:
+                client_ip = IP(EnderecoIPComprador)
+            except ValueError:
+                self._errors['EnderecoIPComprador'] = 'Invalid IP address'
+                return
+
+            localnet = IP('127.0.0.0/30')
+            if client_ip in localnet:
+                self._errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
+                return
 
 
     def parse_response(self, response, content):

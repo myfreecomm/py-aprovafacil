@@ -378,18 +378,18 @@ class TestFirstChargeValidation(BaseFirstChargeTest):
         self.assertTrue('AnoValidade' in wrapper.errors)
 
 
+    def test_ano_validade_com_4_digitos_gera_falha(self):
+        post_data = self.get_post_data(AnoValidade=time.strftime('%Y', time.localtime()))
+        wrapper = APC(cgi_url=self.url, **post_data)
+        wrapper.validate()
+        self.assertTrue('AnoValidade' in wrapper.errors)
+
+
     def test_transacao_sem_codigo_cartao_falha(self):
         post_data = self.get_post_data(CodigoSeguranca=None)
         wrapper = APC(cgi_url=self.url, **post_data)
         wrapper.validate()
         self.assertTrue('CodigoSeguranca' in wrapper.errors)
-
-
-    def test_transacao_sem_ip_comprador_falha(self):
-        post_data = self.get_post_data(EnderecoIPComprador=None)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        wrapper.validate()
-        self.assertTrue('EnderecoIPComprador' in wrapper.errors)
 
 
     def test_endereco_ip_comprador_malformado_gera_falha(self):
