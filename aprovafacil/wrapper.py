@@ -78,7 +78,6 @@ class APC(AprovaFacilWrapper):
     mandatory_fields = (
         'NumeroDocumento', 'ValorDocumento', 'QuantidadeParcelas',
         'NumeroCartao', 'MesValidade', 'AnoValidade', 'CodigoSeguranca',
-        'EnderecoIPComprador',
     )
 
     recurring_charge_fields = (
@@ -227,6 +226,10 @@ class CanCapWrapper(AprovaFacilWrapper):
                 # XML de formato inesperado
                 result['approved'] = False
                 result['failure_reason'] = 'CGI error. Check licence file'
+            else:
+                approved_string = result.get('ResultadoSolicitacaoAprovacao', None)
+                result['approved'] = (approved_string.startswith('Confirmado'))
+                result['failure_reason'] = self.get_failure_reason(result)
 
         else:
             result = {
@@ -235,6 +238,13 @@ class CanCapWrapper(AprovaFacilWrapper):
             }
 
         return result
+
+
+    def get_failure_reason(self, result):
+        if not result['approved']:
+            return result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip()
+        else:
+            return None
 
 
 class CAN(CanCapWrapper):
