@@ -152,7 +152,7 @@ class APC(AprovaFacilWrapper):
             expiracao_cartao = date(
                 *time.strptime('%(MesValidade)s/%(AnoValidade)s' % transaction,
                 '%m/%y'
-            )[:3]
+            )[:3])
 
             if expiracao_cartao < date(today.year, today.month, 1):
                 msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
