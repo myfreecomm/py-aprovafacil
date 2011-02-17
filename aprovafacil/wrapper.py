@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+from datetime import date
 from urllib import urlencode
 
 import decimal
@@ -147,12 +148,13 @@ class APC(AprovaFacilWrapper):
         request_data = self.request_data
 
         try:
-            expiracao_cartao = time.strptime(
-                "%(AnoValidade)s/%(MesValidade)s" % request_data,
-                "%y/%m"
-            )
+            today = date.today()
+            expiracao_cartao = date(
+                *time.strptime('%(MesValidade)s/%(AnoValidade)s' % transaction,
+                '%m/%y'
+            )[:3]
 
-            if not expiracao_cartao > time.localtime():
+            if expiracao_cartao < date(today.year, today.month, 1):
                 msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
                 self._errors['MesValidade'] = msg
                 self._errors['AnoValidade'] = msg

@@ -3,6 +3,7 @@ import unittest
 from unittest import TestCase
 from mock import Mock, patch
 import time
+from datetime import date
 from decimal import Decimal
 from httplib2 import Http
 
@@ -408,6 +409,17 @@ class TestFirstChargeValidation(BaseFirstChargeTest):
 
     def test_transacao_com_cartao_expirado_falha(self):
         post_data = self.get_post_data(AnoValidade='88')
+        wrapper = APC(cgi_url=self.url, **post_data)
+        wrapper.validate()
+        self.assertTrue('AnoValidade' in wrapper.errors)
+        self.assertTrue('MesValidade' in wrapper.errors)
+
+
+    def test_transacao_com_cartao_no_ultimo_mes_de_validade_funciona(self):
+        today = date.today()
+        post_data = self.get_post_data(
+            AnoValidade=today.year, MesValidade=today.month
+        )
         wrapper = APC(cgi_url=self.url, **post_data)
         wrapper.validate()
         self.assertTrue('AnoValidade' in wrapper.errors)
