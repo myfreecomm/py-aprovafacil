@@ -150,7 +150,7 @@ class APC(AprovaFacilWrapper):
         try:
             today = date.today()
             expiracao_cartao = date(
-                *time.strptime('%(MesValidade)s/%(AnoValidade)s' % transaction,
+                *time.strptime('%(MesValidade)s/%(AnoValidade)s' % request_data,
                 '%m/%y'
             )[:3])
 
