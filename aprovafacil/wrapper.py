@@ -66,6 +66,8 @@ class APC(AprovaFacilWrapper):
 
     FAILURE_REASONS = {
         '30': 'Random',
+        '05': 'Unauthorized',
+        '41': 'Unauthorized - Random',
         '78': 'Blocked credit card',
         '14': 'Invalid credit card',
         '54': 'Expired credit card',
