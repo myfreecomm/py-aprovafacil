@@ -5,8 +5,9 @@ from urllib import urlencode
 
 import decimal
 from decimal import Decimal
-
+import httplib
 import httplib2
+
 from IPy import IP
 
 from utils import xmltodict
@@ -53,11 +54,15 @@ class AprovaFacilWrapper(object):
             raise ValueError('Errors in request data. (%s)' % ', '.join(self.errors.keys()))
 
         http = httplib2.Http()
-        response, content = http.request(
-            self.url, 'POST',
-            body=urlencode(self.request_data),
-            headers = {'cache-control': 'no-cache'},
-        )
+        try:
+            response, content = http.request(
+                self.url, 'POST',
+                body=urlencode(self.request_data),
+                headers = {'cache-control': 'no-cache'},
+            )
+        except AttributeError:
+            # See http://code.google.com/p/httplib2/issues/detail?id=96
+            raise httplib.HTTPException()
 
         return self.parse_response(response, content)
 
