@@ -7,6 +7,7 @@ from decimal import Decimal
 from httplib2 import Http
 
 from aprovafacil.wrapper import CAN, CAP
+from aprovafacil.exceptions import InvalidLicense, RemoteServerException
 import mocked_responses
 
 __all__ = [
@@ -47,21 +48,14 @@ class TestCAN(BaseCanCapTest):
     def test_erro_http(self):
         post_data = self.get_post_data()
         wrapper = CAN(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'],  'HTTP Error, status 500')
+        self.assertRaises(RemoteServerException, wrapper.make_request)
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_licence))
     def test_arquivo_licenca_invalido(self):
         post_data = self.get_post_data(CodigoSeguranca=555)
         wrapper = CAN(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(
-            result['failure_reason'],
-            'CGI error. Check licence file'
-        )
+        self.assertRaises(InvalidLicense, wrapper.make_request)
 
 
     def test_cancelamento_com_sucesso(self):
@@ -114,21 +108,14 @@ class TestCAP(BaseCanCapTest):
     def test_erro_http(self):
         post_data = self.get_post_data()
         wrapper = CAP(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'],  'HTTP Error, status 500')
+        self.assertRaises(RemoteServerException, wrapper.make_request)
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_licence))
     def test_arquivo_licenca_invalido(self):
         post_data = self.get_post_data(CodigoSeguranca=555)
         wrapper = CAP(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(
-            result['failure_reason'],
-            'CGI error. Check licence file'
-        )
+        self.assertRaises(InvalidLicense, wrapper.make_request)
 
 
     @patch.object(Http, 'request', Mock(return_value=confirmed_capture))

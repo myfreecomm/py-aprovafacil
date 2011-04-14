@@ -2,20 +2,24 @@
 import time
 from datetime import date
 from urllib import urlencode
+from abc import ABCMeta, abstractmethod
 
 import decimal
 from decimal import Decimal
 import httplib
 import httplib2
-
 from IPy import IP
 
 from utils import xmltodict
+from exceptions import RemoteServerException, InvalidLicense
+
 
 __all__ = ['AprovaFacilWrapper', ]
 
 
 class AprovaFacilWrapper(object):
+
+    __metaclass__ = ABCMeta
 
     mandatory_fields = ()
 
@@ -65,6 +69,26 @@ class AprovaFacilWrapper(object):
             raise httplib.HTTPException()
 
         return self.parse_response(response, content)
+
+
+    def parse_response(self, response, content):
+        status = int(response['status'])
+        if status == 200:
+            result = xmltodict(content)
+            if result:
+                return self.parse_response_content(result)
+
+            else:
+                # XML de formato inesperado
+                raise InvalidLicense('CGI error. Check licence file')
+
+        else:
+            raise RemoteServerException('HTTP Error, status %d' % status)
+
+
+    @abstractmethod
+    def parse_response_content(self, result):
+        pass
 
 
 class APC(AprovaFacilWrapper):
@@ -191,26 +215,10 @@ class APC(AprovaFacilWrapper):
                 return
 
 
-    def parse_response(self, response, content):
-        status = int(response['status'])
-        if status == 200:
-            result = xmltodict(content)
-            if not result:
-                # XML de formato inesperado
-                result['approved'] = False
-                result['failure_reason'] = 'CGI error. Check licence file'
-
-            else:
-                approved_string = result.get('TransacaoAprovada', None)
-                result['approved'] = (approved_string == 'True')
-                result['failure_reason'] = self.get_failure_reason(result)
-
-        else:
-            result = {
-                'approved': False,
-                'failure_reason': 'HTTP Error, status %d' % status,
-            }
-
+    def parse_response_content(self, result):
+        approved_string = result.get('TransacaoAprovada', None)
+        result['approved'] = (approved_string == 'True')
+        result['failure_reason'] = self.get_failure_reason(result)
         return result
 
 
@@ -236,25 +244,11 @@ class CanCapWrapper(AprovaFacilWrapper):
         super(CanCapWrapper, self).__init__(*args, **kwargs)
         self.url = '%s/%s' % (self.cgi_url, self.url_suffix)
 
-    def parse_response(self, response, content):
-        status = int(response['status'])
-        if status == 200:
-            result = xmltodict(content)
-            if not result:
-                # XML de formato inesperado
-                result['approved'] = False
-                result['failure_reason'] = 'CGI error. Check licence file'
-            else:
-                approved_string = result.get('ResultadoSolicitacaoAprovacao', None)
-                result['approved'] = (approved_string.startswith('Confirmado'))
-                result['failure_reason'] = self.get_failure_reason(result)
 
-        else:
-            result = {
-                'approved': False,
-                'failure_reason': 'HTTP Error, status %d' % status,
-            }
-
+    def parse_response_content(self, result):
+        approved_string = result.get('ResultadoSolicitacaoAprovacao', None)
+        result['approved'] = (approved_string.startswith('Confirmado'))
+        result['failure_reason'] = self.get_failure_reason(result)
         return result
 
 

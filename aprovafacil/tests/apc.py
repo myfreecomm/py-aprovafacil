@@ -8,6 +8,7 @@ from decimal import Decimal
 from httplib2 import Http
 
 from aprovafacil.wrapper import APC
+from aprovafacil.exceptions import RemoteServerException, InvalidLicense
 import mocked_responses
 
 __all__ = [
@@ -67,21 +68,14 @@ class TestFirstCharge(BaseFirstChargeTest):
     def test_erro_http(self):
         post_data = self.get_post_data()
         wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'],  'HTTP Error, status 500')
+        self.assertRaises(RemoteServerException, wrapper.make_request)
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_licence))
     def test_arquivo_licenca_invalido(self):
         post_data = self.get_post_data(CodigoSeguranca=555)
         wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(
-            result['failure_reason'],
-            'CGI error. Check licence file'
-        )
+        self.assertRaises(InvalidLicense, wrapper.make_request)
 
 
     @patch.object(Http, 'request', Mock(return_value=accepted))
@@ -448,21 +442,14 @@ class TestRecurringCharge(BaseFirstChargeTest):
     def test_erro_http(self):
         post_data = self.get_post_data()
         wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'],  'HTTP Error, status 500')
+        self.assertRaises(RemoteServerException, wrapper.make_request)
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_licence))
     def test_arquivo_licenca_invalido(self):
         post_data = self.get_post_data(CodigoSeguranca=555)
         wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(
-            result['failure_reason'],
-            'CGI error. Check licence file'
-        )
+        self.assertRaises(InvalidLicense, wrapper.make_request)
 
 
     @patch.object(Http, 'request', Mock(return_value=accepted))
