@@ -5,11 +5,22 @@ __all__ = ['xmltodict', ]
 
 def xmltodict(xmlstring):
     try:
-        doc = minidom.parseString(xmlstring)
+        doc = minidom.parseString(grant_utf8(xmlstring))
         remove_whitespace_nodes(doc.documentElement)
         return elementtodict(doc.documentElement)
     except ExpatError:
         return {}
+
+def grant_utf8(string):
+    if isinstance(string, unicode):
+        return string.encode('utf-8')
+
+    try:
+        string.decode('utf-8')
+        return string
+
+    except UnicodeDecodeError:
+        return string.decode('latin-1').encode('utf-8')
 
 def elementtodict(parent):
     child = parent.firstChild
