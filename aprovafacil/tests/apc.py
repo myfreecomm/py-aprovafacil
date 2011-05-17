@@ -430,7 +430,7 @@ class BaseRecurringChargeTest(BaseAPCTest):
 
     def get_post_data(self, **kwargs):
         post_data = {
-            'TransacaoAnterior': '73417867510462',
+            'Transacao': '73417867510462',
             'ValorDocumento': '101.75',
             'QuantidadeParcelas': 1,
         }
@@ -749,7 +749,7 @@ class TestRecurringChargeValidation(BaseFirstChargeTest):
 
 
     def test_transacao_sem_transacao_anterior_gera_falha(self):
-        post_data = self.get_post_data(TransacaoAnterior=None)
+        post_data = self.get_post_data(Transacao=None)
         wrapper = APC(cgi_url=self.url, **post_data)
         wrapper.validate()
-        self.assertTrue('TransacaoAnterior' in wrapper.errors)
+        self.assertTrue('Transacao' in wrapper.errors)

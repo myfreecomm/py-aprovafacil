@@ -99,7 +99,7 @@ class APC(AprovaFacilWrapper):
     )
 
     recurring_charge_fields = (
-        'TransacaoAnterior', 'ValorDocumento', 'QuantidadeParcelas'
+        'Transacao', 'ValorDocumento', 'QuantidadeParcelas'
     )
 
 
@@ -109,7 +109,7 @@ class APC(AprovaFacilWrapper):
 
 
     def pre_validate(self):
-        if 'TransacaoAnterior' in self.request_data:
+        if 'Transacao' in self.request_data:
             # Recurring charge mandatory fields are different
             self.mandatory_fields = self.recurring_charge_fields
         self.validate_QuantidadeParcelas()
@@ -117,7 +117,7 @@ class APC(AprovaFacilWrapper):
 
     def pos_validate(self):
         request_data = self.request_data
-        if 'TransacaoAnterior' not in request_data:
+        if 'Transacao' not in request_data:
             # First charge
             self.validate_CreditCardExpiration()
             self.validate_EnderecoIPComprador()
