@@ -106,7 +106,7 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['30'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 30 - 30ALEATORIO')
         self.assertEquals(
             post_data['NumeroCartao'][:6],
             result['CartaoMascarado'][:6]
@@ -124,7 +124,7 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['78'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 78 - 78CAR BLOQ1.USO')
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_credit_card))
@@ -133,7 +133,7 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['14'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 14 - 14CARTAOINVALIDO')
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_amount))
@@ -142,7 +142,8 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['60'])
+        self.assertEquals(result['failure_reason'],
+            u'N?o Autorizado - 60 - Valor Inv?lido. Por favor, ent')
 
 
     @patch.object(Http, 'request', Mock(return_value=duplicated_transaction))
@@ -151,7 +152,7 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['68'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 68 - T68TRANSACAO JA EFETUADA')
 
 
     @patch.object(Http, 'request', Mock(return_value=expired_credit_card))
@@ -160,7 +161,7 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['54'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 54 - 54CARTAO VENCIDO')
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_data))
@@ -169,7 +170,8 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['56'])
+        self.assertEquals(result['failure_reason'],
+            u'N?o Autorizado - 56 - Dado Inv?lido. Por favor, entr')
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_security_code))
@@ -178,7 +180,7 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['N7'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - N7 - N7COD.SEG.INVAL')
 
 
     @patch.object(Http, 'request', Mock(return_value=retry_transaction))
@@ -187,7 +189,7 @@ class TestFirstCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['84'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 84 - T84REFACA TRANS')
 
 
     @patch.object(Http, 'request', Mock(return_value=accepted))
@@ -480,7 +482,7 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['30'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 30 - 30ALEATORIO')
         self.assertEquals(
             post_data['NumeroCartao'][:6],
             result['CartaoMascarado'][:6]
@@ -498,7 +500,7 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['78'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 78 - 78CAR BLOQ1.USO')
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_credit_card))
@@ -507,7 +509,7 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['14'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 14 - 14CARTAOINVALIDO')
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_amount))
@@ -516,7 +518,8 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['60'])
+        self.assertEquals(result['failure_reason'],
+            u'N?o Autorizado - 60 - Valor Inv?lido. Por favor, ent')
 
 
     @patch.object(Http, 'request', Mock(return_value=duplicated_transaction))
@@ -525,7 +528,8 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['68'])
+        self.assertEquals(result['failure_reason'],
+            u'N?o Autorizado - 68 - T68TRANSACAO JA EFETUADA')
 
 
     @patch.object(Http, 'request', Mock(return_value=expired_credit_card))
@@ -534,7 +538,7 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['54'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 54 - 54CARTAO VENCIDO')
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_data))
@@ -543,7 +547,8 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['56'])
+        self.assertEquals(result['failure_reason'],
+            u'N?o Autorizado - 56 - Dado Inv?lido. Por favor, entr')
 
 
     @patch.object(Http, 'request', Mock(return_value=invalid_security_code))
@@ -552,7 +557,7 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['N7'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - N7 - N7COD.SEG.INVAL')
 
 
     @patch.object(Http, 'request', Mock(return_value=retry_transaction))
@@ -561,7 +566,7 @@ class TestRecurringCharge(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], APC.FAILURE_REASONS['84'])
+        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 84 - T84REFACA TRANS')
 
 
     @patch.object(Http, 'request', Mock(return_value=accepted))

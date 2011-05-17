@@ -93,20 +93,6 @@ class AprovaFacilWrapper(object):
 
 class APC(AprovaFacilWrapper):
 
-    FAILURE_REASONS = {
-        '30': 'Random',
-        '05': 'Unauthorized',
-        '41': 'Unauthorized - Random',
-        '78': 'Blocked credit card',
-        '14': 'Invalid credit card',
-        '54': 'Expired credit card',
-        'N7': 'Invalid security code',
-        '84': 'Please retry',
-        '68': 'Duplicated transaction',
-        '60': 'Invalid amount',
-        '56': 'Invalid data',
-    }
-
     mandatory_fields = (
         'NumeroDocumento', 'ValorDocumento', 'QuantidadeParcelas',
         'NumeroCartao', 'MesValidade', 'AnoValidade', 'CodigoSeguranca',
@@ -225,11 +211,11 @@ class APC(AprovaFacilWrapper):
     def get_failure_reason(self, result):
         if not result['approved']:
             try:
-                code =  result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip()
-            except IndexError:
-                code = None
+                return result['ResultadoSolicitacaoAprovacao']
 
-            return APC.FAILURE_REASONS.get(code, 'Unknown')
+            except IndexError:
+                return None
+
         else:
             return None
 
@@ -254,7 +240,7 @@ class CanCapWrapper(AprovaFacilWrapper):
 
     def get_failure_reason(self, result):
         if not result['approved']:
-            return result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip()
+            return result['ResultadoSolicitacaoAprovacao']
         else:
             return None
 
