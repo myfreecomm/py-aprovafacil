@@ -3,6 +3,7 @@ import time
 from datetime import date
 from urllib import urlencode
 from abc import ABCMeta, abstractmethod
+import logging
 
 import decimal
 from decimal import Decimal
@@ -25,6 +26,11 @@ class AprovaFacilWrapper(object):
 
 
     def __init__(self, cgi_url, **kwargs):
+        logging.debug(
+            'create %s object for CGI URL %s',
+            self.__class__.__name__,
+            cgi_url,
+        )
         self.cgi_url = cgi_url
         self.request_data = kwargs
         self._errors = {}
@@ -42,30 +48,51 @@ class AprovaFacilWrapper(object):
         pos_validate = getattr(self, 'pos_validate', None)
 
         if pre_validate:
+            logging.debug(
+                'running pre validation for %s object with URL %s',
+                self.__class__.__name__,
+                self.url,
+            )
             pre_validate()
 
+        logging.debug(
+            'running validation for %s object',
+            self.__class__.__name__,
+        )
         for field in self.mandatory_fields:
             if self.request_data.get(field, None) is None:
+                logging.debug('required field %s not supplied', field)
                 self._errors[field] = "Required field '%s'"
 
         if pos_validate:
+            logging.debug(
+                'running post validation for %s object',
+                self.__class__.__name__,
+            )
             pos_validate()
 
 
     def make_request(self):
         # Validate the request data
         if self.errors:
-            raise ValueError('Errors in request data. (%s)' % ', '.join(self.errors.keys()))
+            error_msg = 'Errors in request data. (%s)' % ', '.join(self.errors.keys())
+            logging.error(error_msg)
+            raise ValueError(error_msg)
 
         http = httplib2.Http()
         try:
+            body = urlencode(self.request_data)
+            logging.info('POST %s with body %s', self.url, body)
             response, content = http.request(
                 self.url, 'POST',
-                body=urlencode(self.request_data),
+                body=body,
                 headers = {'cache-control': 'no-cache'},
             )
         except AttributeError:
-            # See http://code.google.com/p/httplib2/issues/detail?id=96
+            logging.error(
+                'AttributeError, '
+                'see http://code.google.com/p/httplib2/issues/detail?id=96'
+            )
             raise httplib.HTTPException()
 
         return self.parse_response(response, content)
@@ -76,14 +103,18 @@ class AprovaFacilWrapper(object):
         if status == 200:
             result = xmltodict(content)
             if result:
-                return self.parse_response_content(result)
+                response = self.parse_response_content(result)
+                logging.info('response parsing returns %s', response)
+                return response
 
             else:
-                # XML de formato inesperado
+                logging.error('unexpected XML format')
                 raise InvalidLicense('CGI error. Check licence file')
 
         else:
-            raise RemoteServerException('HTTP Error, status %d' % status)
+            error_msg = 'HTTP Error, status %d' % status
+            logging.error(error_msg)
+            raise RemoteServerException(error_msg)
 
 
     @abstractmethod
@@ -130,16 +161,14 @@ class APC(AprovaFacilWrapper):
             return
 
         request_data = self.request_data
-
         parcels = request_data.get('QuantidadeParcelas', None)
+
         if parcels is None:
             request_data['QuantidadeParcelas'] = 1
-        else:
-            try:
-                if int(parcels) < 1:
-                    raise ValueError
-            except ValueError:
-                self._errors["QuantidadeParcelas"] = "QuantidadeParcelas must be >= 1"
+
+        elif int(parcels) < 1:
+            logging.error('invalid parcels number: %s', parcels)
+            self._errors["QuantidadeParcelas"] = "QuantidadeParcelas must be >= 1"
 
 
     def validate_ValorDocumento(self):
@@ -155,6 +184,7 @@ class APC(AprovaFacilWrapper):
 
         except (TypeError, decimal.InvalidOperation):
             msg = 'Invalid Document Value (%s)' % request_data['ValorDocumento']
+            logging.debug(msg)
             self._errors['ValorDocumento'] = msg
 
 
@@ -173,11 +203,13 @@ class APC(AprovaFacilWrapper):
 
             if expiracao_cartao < date(today.year, today.month, 1):
                 msg = "Cartao expirado em %(MesValidade)s/%(AnoValidade)s" % request_data
+                logging.error(msg)
                 self._errors['MesValidade'] = msg
                 self._errors['AnoValidade'] = msg
 
         except ValueError:
             msg = 'Both AnoValidade and MesValidade should be composed of 1 or 2 digits'
+            logging.error(msg)
             self._errors['MesValidade'] = msg
             self._errors['AnoValidade'] = msg
 
@@ -192,11 +224,13 @@ class APC(AprovaFacilWrapper):
             try:
                 client_ip = IP(EnderecoIPComprador)
             except ValueError:
+                logging.error('invalid IP address')
                 self._errors['EnderecoIPComprador'] = 'Invalid IP address'
                 return
 
             localnet = IP('127.0.0.0/30')
             if client_ip in localnet:
+                logging.error('localhost not accepted')
                 self._errors['EnderecoIPComprador'] = 'Localhost addresses are not accepted'
                 return
 
