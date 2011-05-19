@@ -108,7 +108,7 @@ class AprovaFacilWrapper(object):
                 return response
 
             else:
-                logging.error('unexpected XML format')
+                logging.error('unexpected XML format: %s', content)
                 raise InvalidLicense('CGI error. Check licence file')
 
         else:
