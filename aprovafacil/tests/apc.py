@@ -403,6 +403,15 @@ class TestFirstChargeValidation(BaseFirstChargeTest):
         self.assertTrue('EnderecoIPComprador' in wrapper.errors)
 
 
+    def test_endereco_ip_nao_eh_adicionado_pela_validacao(self):
+        post_data = self.get_post_data()
+        del(post_data['EnderecoIPComprador'])
+        wrapper = APC(cgi_url=self.url, **post_data)
+        wrapper.validate()
+        self.assertFalse('EnderecoIPComprador' in wrapper.errors)
+        self.assertFalse('EnderecoIPComprador' in wrapper.request_data)
+
+
     def test_transacao_com_cartao_expirado_falha(self):
         post_data = self.get_post_data(AnoValidade='88')
         wrapper = APC(cgi_url=self.url, **post_data)
@@ -725,7 +734,7 @@ class TestRecurringCharge(BaseFirstChargeTest):
         self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
 
 
-class TestRecurringChargeValidation(BaseFirstChargeTest):
+class TestRecurringChargeValidation(BaseRecurringChargeTest):
 
     def test_quantidade_parcelas_negativa_gera_falha(self):
         post_data = self.get_post_data(QuantidadeParcelas=-3)
@@ -753,3 +762,11 @@ class TestRecurringChargeValidation(BaseFirstChargeTest):
         wrapper = APC(cgi_url=self.url, **post_data)
         wrapper.validate()
         self.assertTrue('Transacao' in wrapper.errors)
+
+
+    def test_endereco_ip_eh_RecorrENtE(self):
+        post_data = self.get_post_data()
+        wrapper = APC(cgi_url=self.url, **post_data)
+        wrapper.validate()
+        self.assertTrue('EnderecoIPComprador' not in wrapper.errors)
+        self.assertEquals(wrapper.request_data['EnderecoIPComprador'], 'RecorrENtE')

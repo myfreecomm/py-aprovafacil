@@ -148,7 +148,10 @@ class APC(AprovaFacilWrapper):
 
     def pos_validate(self):
         request_data = self.request_data
-        if 'Transacao' not in request_data:
+        if 'Transacao' in request_data:
+            # Recorrencia, inibir validação de IP da cobrebem
+            self.request_data['EnderecoIPComprador'] = 'RecorrENtE'
+        else:
             # First charge
             self.validate_CreditCardExpiration()
             self.validate_EnderecoIPComprador()
