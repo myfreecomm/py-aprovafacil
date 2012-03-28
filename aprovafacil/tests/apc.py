@@ -447,7 +447,7 @@ class BaseRecurringChargeTest(BaseAPCTest):
         return post_data
 
 
-class TestRecurringCharge(BaseFirstChargeTest):
+class TestRecurringCharge(BaseRecurringChargeTest):
 
     @patch.object(Http, 'request', Mock(return_value=http_error))
     def test_erro_http(self):
@@ -458,14 +458,14 @@ class TestRecurringCharge(BaseFirstChargeTest):
 
     @patch.object(Http, 'request', Mock(return_value=invalid_licence))
     def test_arquivo_licenca_invalido(self):
-        post_data = self.get_post_data(CodigoSeguranca=555)
+        post_data = self.get_post_data()
         wrapper = APC(cgi_url=self.url, **post_data)
         self.assertRaises(InvalidLicense, wrapper.make_request)
 
 
     @patch.object(Http, 'request', Mock(return_value=accepted))
     def test_autorizacao_aprovada(self):
-        post_data = self.get_post_data(CodigoSeguranca=555)
+        post_data = self.get_post_data()
         wrapper = APC(cgi_url=self.url, **post_data)
         result = wrapper.make_request()
         self.assertTrue(result['approved'])
@@ -474,242 +474,6 @@ class TestRecurringCharge(BaseFirstChargeTest):
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
             result['CodigoAutorizacao']
         )
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
-
-
-    @patch.object(Http, 'request', Mock(return_value=refused))
-    def test_autorizacao_recusada(self):
-        post_data = self.get_post_data(CodigoSeguranca=501)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 30 - 30ALEATORIO')
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
-
-
-    @patch.object(Http, 'request', Mock(return_value=blocked_credit_card))
-    def test_autorizacao_recusada_cartao_bloqueado(self):
-        post_data = self.get_post_data(CodigoSeguranca=502)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 78 - 78CAR BLOQ1.USO')
-
-
-    @patch.object(Http, 'request', Mock(return_value=invalid_credit_card))
-    def test_autorizacao_recusada_cartao_invalido(self):
-        post_data = self.get_post_data(CodigoSeguranca=504)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 14 - 14CARTAOINVALIDO')
-
-
-    @patch.object(Http, 'request', Mock(return_value=invalid_amount))
-    def test_autorizacao_recusada_valor_invalido(self):
-        post_data = self.get_post_data(CodigoSeguranca=506)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'],
-            u'N?o Autorizado - 60 - Valor Inv?lido. Por favor, ent')
-
-
-    @patch.object(Http, 'request', Mock(return_value=duplicated_transaction))
-    def test_autorizacao_recusada_transacao_ja_efetuada(self):
-        post_data = self.get_post_data(CodigoSeguranca=507)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'],
-            u'N?o Autorizado - 68 - T68TRANSACAO JA EFETUADA')
-
-
-    @patch.object(Http, 'request', Mock(return_value=expired_credit_card))
-    def test_autorizacao_recusada_cartao_vencido(self):
-        post_data = self.get_post_data(CodigoSeguranca=508)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 54 - 54CARTAO VENCIDO')
-
-
-    @patch.object(Http, 'request', Mock(return_value=invalid_data))
-    def test_autorizacao_recusada_dados_invalidos(self):
-        post_data = self.get_post_data(CodigoSeguranca=509)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'],
-            u'N?o Autorizado - 56 - Dado Inv?lido. Por favor, entr')
-
-
-    @patch.object(Http, 'request', Mock(return_value=invalid_security_code))
-    def test_autorizacao_recusada_codigo_seguranca_invalido(self):
-        post_data = self.get_post_data(CodigoSeguranca=444)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], u'N?o Autorizado - N7 - N7COD.SEG.INVAL')
-
-
-    @patch.object(Http, 'request', Mock(return_value=retry_transaction))
-    def test_autorizacao_recusada_refaca_transacao(self):
-        post_data = self.get_post_data(CodigoSeguranca=333)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertFalse(result['approved'])
-        self.assertEquals(result['failure_reason'], u'N?o Autorizado - 84 - T84REFACA TRANS')
-
-
-    @patch.object(Http, 'request', Mock(return_value=accepted))
-    def test_autorizacao_sem_nome_portador_funciona(self):
-        post_data = self.get_post_data(NomePortadorCartao=None)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertTrue(result['approved'])
-        self.assertEquals(result['failure_reason'], None)
-        self.assertEquals(
-            result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
-            result['CodigoAutorizacao']
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
-
-
-    @patch.object(Http, 'request', Mock(return_value=accepted))
-    def test_autorizacao_sem_bandeira_funciona(self):
-        post_data = self.get_post_data(Bandeira=None)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertTrue(result['approved'])
-        self.assertEquals(result['failure_reason'], None)
-        self.assertEquals(
-            result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
-            result['CodigoAutorizacao']
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
-
-
-    @patch.object(Http, 'request', Mock(return_value=accepted))
-    def test_autorizacao_sem_cpf_funciona(self):
-        post_data = self.get_post_data(CPFPortadorCartao=None)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertTrue(result['approved'])
-        self.assertEquals(result['failure_reason'], None)
-        self.assertEquals(
-            result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
-            result['CodigoAutorizacao']
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
-
-
-    @patch.object(Http, 'request', Mock(return_value=accepted))
-    def test_transacao_com_valor_float_funciona(self):
-        post_data = self.get_post_data(ValorDocumento=1.1)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertTrue(result['approved'])
-        self.assertEquals(result['failure_reason'], None)
-        self.assertEquals(
-            result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
-            result['CodigoAutorizacao']
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
-
-
-    @patch.object(Http, 'request', Mock(return_value=accepted))
-    def test_quantidade_parcelas_pode_ser_omitida(self):
-        post_data = self.get_post_data(QuantidadeParcelas=None)
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertTrue(result['approved'])
-        self.assertEquals(result['failure_reason'], None)
-        self.assertEquals(
-            result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
-            result['CodigoAutorizacao']
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
-
-
-    @patch.object(Http, 'request', Mock(return_value=accepted))
-    def test_parcelamento_habilitado(self):
-        post_data = self.get_post_data(
-            ParcelamentoAdministradora='S', QuantidadeParcelas='10'
-        )
-        wrapper = APC(cgi_url=self.url, **post_data)
-        result = wrapper.make_request()
-        self.assertTrue(result['approved'])
-        self.assertEquals(result['failure_reason'], None)
-        self.assertEquals(
-            result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
-            result['CodigoAutorizacao']
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
 
 
     @patch.object(Http, 'request', Mock(return_value=accepted))
@@ -723,15 +487,6 @@ class TestRecurringCharge(BaseFirstChargeTest):
             result['ResultadoSolicitacaoAprovacao'].split('-')[1].strip(),
             result['CodigoAutorizacao']
         )
-        self.assertEquals(
-            post_data['NumeroCartao'][:6],
-            result['CartaoMascarado'][:6]
-        )
-        self.assertEquals(
-            post_data['NumeroCartao'][-4:],
-            result['CartaoMascarado'][-4:]
-        )
-        self.assertEquals(post_data['NumeroDocumento'], result['NumeroDocumento'])
 
 
 class TestRecurringChargeValidation(BaseRecurringChargeTest):
